@@ -63,8 +63,8 @@ class GetOriginalURL(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = OriginalURLSerializer
 
-    def get(self, request):
-        short_url = request.GET.get('short_url', '')
+    def post(self, request):
+        short_url = request.POST.get('short_url', '')
         if short_url:
             try:
                 result = URL.objects.get(short_url=short_url)
