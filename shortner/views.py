@@ -43,7 +43,7 @@ class CreateShortURL(APIView):
 
             short_url = hashlib.md5(original_url.encode()).hexdigest()[:10]
         else:
-            short_url = ''
+            return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL not found.')
         # request_data = request.data.copy()
 
         # serializer = self.serializer_class(data=request_data, context={'request': request})
