@@ -1,4 +1,4 @@
-from hashlib import md5
+import hashlib
 
 from django.core.validators import URLValidator
 from django.http import JsonResponse
@@ -41,7 +41,7 @@ class CreateShortURL(APIView):
             if result:
                 return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL already exist.')
 
-            short_url = md5(original_url.encode()).hexdigest()[:10]
+            short_url = hashlib.md5(original_url.encode()).hexdigest()[:10]
         else:
             short_url = ''
         # request_data = request.data.copy()
