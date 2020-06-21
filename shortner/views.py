@@ -1,7 +1,6 @@
 import hashlib
 
 from django.core.validators import URLValidator
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -12,13 +11,6 @@ from shortner.utils import CustomResponse
 
 
 # Create your views here.
-
-class HelloView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        content = {'message': 'Hello, World!'}
-        return JsonResponse(content)
 
 
 class CreateShortURL(APIView):
