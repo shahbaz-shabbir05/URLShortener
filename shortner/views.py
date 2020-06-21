@@ -1,12 +1,14 @@
 from hashlib import md5
 
-from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.http import JsonResponse
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from shortner.serializers import URLSerializer
+from shortner.models import URL
+from shortner.serializers import CreateURLSerializer, OriginalURLSerializer
+from shortner.utils import CustomResponse
 
 
 # Create your views here.
@@ -21,30 +23,54 @@ class HelloView(APIView):
 
 class CreateShortURL(APIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = URLSerializer
+    serializer_class = CreateURLSerializer
 
     def post(self, request):
-        # original_url = short_url = ""
         # import pdb;
         # pdb.set_trace()
-        user_id = request.user.id
+        user = request.user
         original_url = request.POST.get('original_url', '')
         if original_url:
             validate = URLValidator()
             try:
                 validate(original_url)
-            except ValidationError:
-                raise TypeError('URL not found.')
+            except:
+                return CustomResponse.create_error_response(status.HTTP_200_OK, 'Invalid URL')
 
-        short_url = md5(original_url.encode()).hexdigest()[:10]
+            result = URL.objects.filter(original_url=original_url)
+            if result:
+                return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL already exist.')
 
-        request_data = request.data.copy()
+            short_url = md5(original_url.encode()).hexdigest()[:10]
+        else:
+            short_url = ''
+        # request_data = request.data.copy()
 
-        serializer = self.serializer_class(data=request_data, context={'request': request})
-        if serializer.is_valid():
-            obj = serializer.save()
-            obj.user = user_id
-            obj.short_url = short_url
-            obj.save()
-            return JsonResponse(obj.data, status=200)
-        return JsonResponse(serializer.errors, status=400)
+        # serializer = self.serializer_class(data=request_data, context={'request': request})
+        # if serializer.is_valid():
+        #     obj = serializer.save()
+        #     obj.user = user
+        #     obj.short_url = short_url
+        #     obj.save()
+        # return JsonResponse(serializer.errors, status=400)
+        url_obj = URL(original_url=original_url, short_url=short_url, user=user)
+        url_obj.save()
+        data = {"original_url": original_url, "short_url": short_url}
+        return CustomResponse.create_response(True, status.HTTP_200_OK, 'Success', data)
+
+
+class GetOriginalURL(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OriginalURLSerializer
+
+    def get(self, request):
+        short_url = request.GET.get('short_url', '')
+        if short_url:
+            try:
+                result = URL.objects.get(short_url=short_url)
+                serializer = self.serializer_class(result, context={'request': request}, many=False)
+                return CustomResponse.create_response(True, status.HTTP_200_OK, 'Success', serializer.data)
+            except:
+                return CustomResponse.create_error_response(status.HTTP_200_OK, 'Invalid URL')
+
+        return CustomResponse.create_error_response(status.HTTP_200_OK, 'No URL found.')
