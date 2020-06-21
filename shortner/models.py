@@ -7,7 +7,7 @@ from django.db import models
 class URL(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     original_url = models.URLField(unique=True)
-    short_url = models.URLField(unique=True)
+    short_url = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -15,4 +15,4 @@ class URL(models.Model):
         verbose_name_plural = "URLs"
 
     def __str__(self):
-        return self.original_url
+        return str(self.id)

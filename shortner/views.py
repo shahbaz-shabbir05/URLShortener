@@ -26,37 +26,32 @@ class CreateShortURL(APIView):
     serializer_class = CreateURLSerializer
 
     def post(self, request):
-        # import pdb;
-        # pdb.set_trace()
-        user = request.user
         original_url = request.POST.get('original_url', '')
-        if original_url:
-            validate = URLValidator()
-            try:
-                validate(original_url)
-            except:
-                return CustomResponse.create_error_response(status.HTTP_200_OK, 'Invalid URL')
 
-            result = URL.objects.filter(original_url=original_url)
-            if result:
-                return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL already exist.')
-
-            short_url = hashlib.md5(original_url.encode()).hexdigest()[:10]
-        else:
+        if not original_url:
             return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL not found.')
-        # request_data = request.data.copy()
 
-        # serializer = self.serializer_class(data=request_data, context={'request': request})
-        # if serializer.is_valid():
-        #     obj = serializer.save()
-        #     obj.user = user
-        #     obj.short_url = short_url
-        #     obj.save()
-        # return JsonResponse(serializer.errors, status=400)
-        url_obj = URL(original_url=original_url, short_url=short_url, user=user)
-        url_obj.save()
-        data = {"original_url": original_url, "short_url": short_url}
-        return CustomResponse.create_response(True, status.HTTP_200_OK, 'Success', data)
+        validate = URLValidator()
+        try:
+            validate(original_url)
+        except:
+            return CustomResponse.create_error_response(status.HTTP_200_OK, 'Invalid URL')
+
+        result = URL.objects.filter(original_url=original_url)
+        if result:
+            return CustomResponse.create_error_response(status.HTTP_200_OK, 'URL already shortened.')
+
+        short_url = hashlib.md5(original_url.encode()).hexdigest()[:10]
+
+        request_data = request.data.copy()
+        request_data['short_url'] = short_url
+
+        serializer = self.serializer_class(data=request_data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return CustomResponse.create_response(True, status.HTTP_200_OK, 'Success', serializer.data)
+
+        return CustomResponse.create_error_response(status.HTTP_200_OK, serializer.errors)
 
 
 class GetOriginalURL(APIView):
