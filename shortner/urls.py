@@ -7,5 +7,5 @@ urlpatterns = [
     path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('url/new/', CreateShortURL.as_view(), name='create_short_url'),
-    path('url/revert/', GetOriginalURL.as_view(), name='get_original_URL'),
+    path('url/revert/', GetOriginalURL.as_view(), name='get_original_url'),
 ]
