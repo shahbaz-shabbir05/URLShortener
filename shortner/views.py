@@ -43,9 +43,9 @@ class CreateShortURL(APIView):
         serializer = self.serializer_class(data=request_data)
         if serializer.is_valid():
             serializer.save()
-            return CustomResponse.create_response(True, status.HTTP_200_OK, 'Success', serializer.data)
+            return CustomResponse.create_response(True, status.HTTP_201_CREATED, 'Success', serializer.data)
 
-        return CustomResponse.create_error_response(status.HTTP_200_OK, str(serializer.errors))
+        return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 class GetOriginalURL(APIView):
